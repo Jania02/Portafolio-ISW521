@@ -1,0 +1,596 @@
+/* ==============================================
+   ISW-521 · Lab 3 — Maquetación con Flexbox
+   Dashboard de Monitoreo Hídrico
+   Estudiante: ___________________________________
+   Fecha: ________________________________________
+   ============================================== */
+
+/* ==============================================
+   ANIMACIÓN A — GOTA DE AGUA (SVG animada en el logo)
+   La gota cae, se aplana al impactar y rebota suavemente.
+   Puro CSS, sin JavaScript.
+   ============================================== */
+@keyframes drop-fall {
+  0%   { transform: translateY(-8px) scaleY(1.1); }
+  60%  { transform: translateY(0px)  scaleY(0.85) scaleX(1.15); }
+  80%  { transform: translateY(-3px) scaleY(1.05); }
+  100% { transform: translateY(0px)  scaleY(1); }
+}
+
+@keyframes drop-glow {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(144, 224, 239, 0.5)); }
+  50%       { filter: drop-shadow(0 0 9px rgba(144, 224, 239, 1)); }
+}
+
+.logo-drop {
+  display: inline-block;
+  animation:
+    drop-fall 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate,
+    drop-glow 2.8s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* ==============================================
+   ANIMACIÓN D — BURBUJAS FLOTANTES DE FONDO
+   Círculos semitransparentes que suben lentamente
+   simulando burbujas de agua. Puro CSS.
+   ============================================== */
+@keyframes bubble-rise {
+  0%   { transform: translateY(0)      scale(1);   opacity: 0;   }
+  10%  { opacity: 0.55; }
+  90%  { opacity: 0.25; }
+  100% { transform: translateY(-520px) scale(1.3); opacity: 0;   }
+}
+
+.bubbles-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  bottom: -40px;
+  border-radius: 50%;
+  background: rgba(144, 224, 239, 0.16);
+  border: 1px solid rgba(144, 224, 239, 0.28);
+  animation: bubble-rise linear infinite;
+}
+
+.bubble:nth-child(1) { width: 12px; height: 12px; left: 15%; animation-duration: 7s;   animation-delay: 0s;   }
+.bubble:nth-child(2) { width: 8px;  height: 8px;  left: 35%; animation-duration: 9s;   animation-delay: 1.5s; }
+.bubble:nth-child(3) { width: 16px; height: 16px; left: 55%; animation-duration: 8s;   animation-delay: 3s;   }
+.bubble:nth-child(4) { width: 6px;  height: 6px;  left: 72%; animation-duration: 11s;  animation-delay: 0.8s; }
+.bubble:nth-child(5) { width: 10px; height: 10px; left: 25%; animation-duration: 10s;  animation-delay: 2.2s; }
+.bubble:nth-child(6) { width: 14px; height: 14px; left: 82%; animation-duration: 6s;   animation-delay: 4s;   }
+.bubble:nth-child(7) { width: 7px;  height: 7px;  left: 45%; animation-duration: 13s;  animation-delay: 1s;   }
+.bubble:nth-child(8) { width: 9px;  height: 9px;  left: 62%; animation-duration: 8.5s; animation-delay: 5s;   }
+
+/* ------------------------------------------
+   RESET Y BASE GENERAL
+   ------------------------------------------ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --color-primary:    #0077b6;
+  --color-secondary:  #00b4d8;
+  --color-accent:     #90e0ef;
+  --color-bg:         #f0f4f8;
+  --color-surface:    #ffffff;
+  --color-sidebar:    #023e8a;
+  --color-sidebar-txt:#caf0f8;
+  --color-text:       #1b2d45;
+  --color-text-soft:  #5a7a99;
+  --color-ok:         #2d6a4f;
+  --color-ok-bg:      #d8f3dc;
+  --color-warning:    #9c6700;
+  --color-warning-bg: #fff3cd;
+  --color-border:     #d0e4f0;
+  --font-main:        'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --nav-height:       60px;
+  --radius:           10px;
+  --shadow:           0 2px 8px rgba(0, 119, 182, 0.10);
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+
+  /* Ejercicio 4 — el body también es flex en columna
+     para que el footer quede siempre al fondo (Sticky Footer) */
+  display: flex;
+  flex-direction: column;
+}
+
+ul {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+
+/* ==============================================
+   EJERCICIO 1 — Barra de Navegación
+   Concepto: Main Axis (horizontal) y Cross Axis (vertical)
+   justify-content distribuye en el eje principal (izq→der)
+   align-items   centra en el eje cruzado (arriba↕abajo)
+   ============================================== */
+.navbar {
+  display: flex;
+  /* justify-content: space-between reparte el espacio libre
+     entre los tres elementos (logo, links, botón) de forma
+     que el primero queda pegado a la izquierda, el último
+     a la derecha, y el del medio recibe el espacio sobrante
+     repartido en sus dos lados. */
+  justify-content: space-between;
+  /* align-items: center alinea todos los hijos en el centro
+     del eje cruzado (verticalmente), sin importar si uno
+     de ellos es más alto que los demás. */
+  align-items: center;
+  min-height: var(--nav-height);
+  background-color: var(--color-primary);
+  padding: 0 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  /* position sticky para que el nav se quede arriba al hacer scroll */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Logo del sistema */
+.nav-logo span {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+/* Lista de enlaces de navegación:
+   También es un flex container para que los <li> se
+   pongan en fila con un gap uniforme entre ellos. */
+.nav-links {
+  display: flex;
+  /* gap reemplaza el viejo truco de margin entre items */
+  gap: 24px;
+}
+
+.nav-links a {
+  color: var(--color-accent);
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: #ffffff;
+}
+
+/* Botón de cierre de sesión */
+.btn-logout {
+  background-color: rgba(255,255,255,0.15);
+  color: #ffffff;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  padding: 7px 18px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  /* Nota: NO usamos margin: auto 0 para centrar este botón.
+     El padre con align-items: center ya lo centra verticalmente
+     de forma automática y elegante — sin hacks. */
+}
+
+.btn-logout:hover {
+  background-color: rgba(255,255,255,0.28);
+}
+
+
+/* ==============================================
+   EJERCICIO 3 — Layout Principal de 3 Columnas
+   Concepto: flex-grow, flex-shrink, flex-basis (shorthand flex)
+   flex: 1 3 1 reparte el espacio como "porciones de pizza":
+     sidebar  = 1/5 del ancho total
+     main     = 3/5 del ancho total
+     alertas  = 1/5 del ancho total
+   ============================================== */
+.dashboard-layout {
+  display: flex;
+  flex-direction: row; /* valor por defecto, lo escribimos explícitamente */
+  /* calc(100vh - nav-height) hace que el layout llene la pantalla
+     descontando la barra de navegación */
+  min-height: calc(100vh - var(--nav-height));
+  /* flex: 1 en el body hace que este div se expanda
+     para empujar el footer hacia abajo (Sticky Footer) */
+  flex: 1;
+}
+
+/* --- Sidebar izquierdo ---
+   flex: 1 significa flex-grow:1 flex-shrink:1 flex-basis:0%
+   Ocupa 1 porción del espacio libre total (1 de 5). */
+.sidebar {
+  flex: 1;
+  background-color: var(--color-sidebar);
+  padding: 24px 16px;
+  /* Prohibido: NO se usó width: 20% para este sidebar */
+  position: relative; /* necesario para que .bubbles-container quede dentro */
+  overflow: hidden;   /* evita que las burbujas se salgan del sidebar */
+}
+
+.sidebar-title {
+  color: #90caf9;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  padding-left: 12px;
+}
+
+.sidebar ul {
+  display: flex;
+  /* flex-direction: column apila los items del menú verticalmente */
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar li {
+  color: var(--color-sidebar-txt);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background-color 0.18s;
+}
+
+.sidebar li:hover,
+.sidebar li.active {
+  background-color: rgba(255,255,255,0.12);
+  color: #ffffff;
+}
+
+/* --- Contenido principal (gráficos) ---
+   flex: 3 significa flex-grow:3 flex-shrink:1 flex-basis:0%
+   Ocupa 3 porciones del espacio libre total (3 de 5).
+
+   Pregunta de reflexión:
+   ¿Es lo mismo flex: 1 que flex-grow: 1?
+   NO. flex: 1 es el shorthand que equivale a flex: 1 1 0%
+   (crece, encoge, y empieza desde 0px de base).
+   flex-grow: 1 por sí solo NO cambia flex-basis,
+   que por defecto es "auto" (respeta el contenido).
+   Siempre es más predecible usar el shorthand flex: N. */
+.main-content {
+  flex: 3;
+  padding: 28px 24px;
+  background-color: var(--color-bg);
+  /* Prohibido: NO se usó width: 60% */
+  overflow-y: auto;
+}
+
+.main-content h2 {
+  font-size: 1.35rem;
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+.main-subtitle {
+  color: var(--color-text-soft);
+  font-size: 0.88rem;
+  margin-bottom: 24px;
+}
+
+/* --- Panel de alertas derecho ---
+   flex: 1 — igual que el sidebar, ocupa 1 de 5 porciones.
+   Si quisiéramos que este panel nunca sea menor a 180px
+   sin importar el flex-shrink, agregaríamos: min-width: 180px
+   Eso actúa como un "piso" que el algoritmo no puede cruzar. */
+.alert-panel {
+  flex: 1;
+  background-color: var(--color-surface);
+  padding: 24px 16px;
+  border-left: 1px solid var(--color-border);
+  /* Prohibido: NO se usó width: 20% */
+  overflow-y: auto;
+}
+
+.alert-panel h3 {
+  font-size: 0.95rem;
+  color: var(--color-primary);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Tarjetas de alerta individuales */
+.alert {
+  padding: 10px 12px;
+  border-radius: 7px;
+  font-size: 0.84rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.alert-ok {
+  background-color: var(--color-ok-bg);
+  color: var(--color-ok);
+}
+
+.alert-warning {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.mt-16 {
+  margin-top: 20px;
+}
+
+/* Lista de eventos recientes */
+.event-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-list li {
+  font-size: 0.8rem;
+  color: var(--color-text-soft);
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+
+/* ==============================================
+   EJERCICIO 2 — Cuadrícula de Sensores IoT
+   Concepto: flex-wrap para multilínea + gap moderno
+
+   DIFERENCIA IMPORTANTE:
+   align-items  → controla los items DENTRO de cada fila
+                  (ej: align-items: stretch iguala alturas)
+   align-content → controla el espacio ENTRE las filas
+                  (solo actúa cuando hay más de una fila activa
+                   y flex-wrap: wrap está encendido)
+   ============================================== */
+.sensor-grid {
+  display: flex;
+  /* flex-wrap: wrap permite que los items pasen a la siguiente
+     línea cuando ya no caben en el ancho disponible. Sin wrap,
+     todos se comprimirían en una sola fila y se verían aplastados. */
+  flex-wrap: wrap;
+  /* gap reemplaza el hack antiguo de margin: 8px en cada tarjeta.
+     Es más limpio: aplica espacio entre items pero NO en los bordes
+     del contenedor, así no hay que compensar con margen negativo. */
+  gap: 16px;
+  /* Prohibido: NO se usó margin: 8px como espaciado */
+}
+
+/* Cada tarjeta de sensor */
+.sensor-card {
+  /* flex-basis define el tamaño "ideal" de partida de la tarjeta.
+     calc(33.333% - 16px) intenta que quepan ~3 por fila:
+     restamos el gap para que la suma de 3 tarjetas + 2 gaps = 100%.
+
+     Exploración: cambia 33.333% por 48% → 2 tarjetas por fila
+                  cambia a 100%           → 1 tarjeta por fila (columna única) */
+  flex-basis: calc(33.333% - 16px);
+  /* flex-grow: 1 permite que las tarjetas se estiren para
+     llenar el espacio sobrante en la última fila */
+  flex-grow: 1;
+  background-color: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
+  transition: transform 0.2s, box-shadow 0.2s;
+  /* Flexbox interno para organizar el contenido de la tarjeta */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sensor-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 119, 182, 0.15);
+}
+
+/* Borde de color según estado */
+.sensor-card.status-ok      { border-top: 3px solid #2d9e6b; }
+.sensor-card.status-warning { border-top: 3px solid #f0a500; }
+
+.sensor-icon {
+  font-size: 1.6rem;
+  margin-bottom: 4px;
+}
+
+.sensor-card h3 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* Valor numérico principal de la tarjeta */
+.sensor-value {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.sensor-label {
+  font-size: 0.78rem;
+  color: var(--color-text-soft);
+}
+
+/* Barra de progreso visual dentro de cada tarjeta */
+.sensor-bar {
+  height: 6px;
+  background-color: var(--color-border);
+  border-radius: 99px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.sensor-bar-fill {
+  height: 100%;
+  background-color: var(--color-secondary);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.sensor-bar-fill.warning {
+  background-color: #f0a500;
+}
+
+
+/* ==============================================
+   FOOTER
+   ============================================== */
+.site-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px;
+  background-color: var(--color-primary);
+  color: rgba(255,255,255,0.7);
+  font-size: 0.8rem;
+  /* El footer siempre queda al fondo porque el dashboard-layout
+     tiene flex: 1 y empuja el footer hacia abajo */
+}
+
+
+/* ==============================================
+   EJERCICIO 4 — Responsividad Móvil
+   Concepto: Media Query + flex-direction: column
+
+   ¿Por qué min-height: 100vh y NO height: 100vh?
+   Porque height: 100vh es un límite FIJO. Si el contenido
+   crece más que la pantalla, se desborda y se recorta.
+   min-height: 100vh es un MÍNIMO: el contenedor ocupa
+   al menos toda la pantalla, pero puede crecer si el
+   contenido lo necesita. Es más robusto y seguro.
+   ============================================== */
+@media (max-width: 768px) {
+
+  /* El body en móvil ya tiene display:flex + flex-direction:column
+     por el Sticky Footer definido arriba. En móvil le confirmamos
+     que ocupe mínimo toda la altura de la pantalla. */
+  body {
+    min-height: 100vh;
+  }
+
+  /* El cambio clave: de row (horizontal) a column (vertical).
+     Con este único cambio, las 3 "columnas" pasan a apilarse
+     una debajo de la otra, como si fueran bloques de texto. */
+  .dashboard-layout {
+    flex-direction: column;
+  }
+
+  /* Sidebar y panel de alertas dejan de ser flexibles en ancho
+     y pasan a ocupar toda la fila horizontal disponible */
+  .sidebar,
+  .alert-panel {
+    flex: none;    /* dejan de crecer/encoger */
+    width: 100%;   /* ocupan el ancho completo */
+    min-height: auto;
+  }
+
+  /* El sidebar horizontal en móvil reorganiza sus items en fila */
+  .sidebar ul {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .sidebar li {
+    font-size: 0.82rem;
+    padding: 8px 10px;
+  }
+
+  /* El contenido principal se expande para llenar el espacio restante */
+  .main-content {
+    flex: 1;
+    padding: 20px 16px;
+  }
+
+  /* En móvil las tarjetas ocupan toda la fila (una columna) */
+  .sensor-card {
+    flex-basis: 100%;
+  }
+
+  /* Navbar en móvil: ocultar links y compactar */
+  .nav-links {
+    display: none; /* Se ocultaría con un menú hamburguesa en producción */
+  }
+
+  .nav-logo span {
+    font-size: 1rem;
+  }
+
+  /* Footer apilado en móvil */
+  .site-footer {
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+    padding: 16px;
+  }
+}
+
+/* Tablet: 2 columnas para las tarjetas */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .sensor-card {
+    flex-basis: calc(48% - 8px);
+  }
+}
+
+/* ==============================================
+   FONDO MARINO — Canvas fijo detrás de todo el contenido
+   El canvas ocupa toda la pantalla pero con z-index -1
+   para que quede por detrás del dashboard sin tapar nada.
+   ============================================== */
+#ocean-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;         /* detrás de todo el contenido */
+  pointer-events: none;
+}
+
+/* Las tarjetas, sidebar y paneles necesitan fondo semiopaco
+   para que el fondo marino se vea a través pero el texto
+   siga siendo legible */
+.sensor-card {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(4px);
+}
+
+.alert-panel {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+}
+
+.main-content {
+  background-color: rgba(240, 244, 248, 0.80);
+  backdrop-filter: blur(2px);
+}
+
+.site-footer {
+  background-color: rgba(0, 119, 182, 0.90);
+  backdrop-filter: blur(4px);
+}

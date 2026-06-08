@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AcueductosIoT — Dashboard de Monitoreo Hídrico</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- =====================================================
+       EJERCICIO 1: Barra de Navegación
+       Propiedades: display:flex, justify-content:space-between, align-items:center
+  ====================================================== -->
+  <nav class="navbar">
+    <div class="nav-logo">
+      <span>
+        <!-- Gota SVG animada — Opción A -->
+        <span class="logo-drop" aria-hidden="true">
+          <svg width="22" height="26" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle; margin-right:6px;">
+            <path d="M11 2 C11 2 3 11 3 16.5 A8 8 0 0 0 19 16.5 C19 11 11 2 11 2Z" fill="#90e0ef" stroke="#caf0f8" stroke-width="1"/>
+            <ellipse cx="8" cy="14" rx="2" ry="3" fill="rgba(255,255,255,0.35)" transform="rotate(-20 8 14)"/>
+          </svg>
+        </span>
+        AcueductosIoT
+      </span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#">Inicio</a></li>
+      <li><a href="#">Sensores</a></li>
+      <li><a href="#">Alertas</a></li>
+      <li><a href="#">Reportes</a></li>
+    </ul>
+    <button class="btn-logout">Cerrar Sesión</button>
+  </nav>
+
+  <!-- =====================================================
+       EJERCICIO 3: Layout Principal de 3 Columnas
+       Propiedades: flex:1 / flex:3 / flex:1, flex-direction:row
+  ====================================================== -->
+  <div class="dashboard-layout">
+
+    <!-- Sidebar izquierdo -->
+    <aside class="sidebar">
+      <!-- Burbujas flotantes — Opción D -->
+      <div class="bubbles-container" aria-hidden="true">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+      </div>
+      <nav>
+        <p class="sidebar-title">Menú</p>
+        <ul>
+          <li class="active">📊 Resumen</li>
+          <li>💧 Tanques</li>
+          <li>⚡ Presiones</li>
+          <li>🧪 Calidad</li>
+          <li>⚙️ Configuración</li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Área principal -->
+    <main class="main-content">
+      <h2>Gráficos de Monitoreo en Tiempo Real</h2>
+      <p class="main-subtitle">Red de Acueductos Comunitarios — Guanacaste</p>
+
+      <!-- =====================================================
+           EJERCICIO 2: Cuadrícula de Sensores IoT
+           Propiedades: flex-wrap:wrap, gap, flex-basis:calc(33%...)
+      ====================================================== -->
+      <section class="sensor-grid">
+
+        <!-- Tarjeta 1 -->
+        <div class="sensor-card status-ok">
+          <div class="sensor-icon">💧</div>
+          <h3>Nivel de Tanque Principal</h3>
+          <p class="sensor-value">73%</p>
+          <p class="sensor-label">Sector A — Actualizado hace 2 min</p>
+          <div class="sensor-bar">
+            <div class="sensor-bar-fill" style="width: 73%;"></div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 2 -->
+        <div class="sensor-card status-warning">
+          <div class="sensor-icon">⚡</div>
+          <h3>Presión de Red</h3>
+          <p class="sensor-value">28 PSI</p>
+          <p class="sensor-label">Calle 2 — Mínimo: 30 PSI ⚠️</p>
+          <div class="sensor-bar">
+            <div class="sensor-bar-fill warning" style="width: 55%;"></div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 3 -->
+        <div class="sensor-card status-ok">
+          <div class="sensor-icon">🧪</div>
+          <h3>Calidad del Agua</h3>
+          <p class="sensor-value">0.8 mg/L</p>
+          <p class="sensor-label">Cloro residual — En rango normal ✅</p>
+          <div class="sensor-bar">
+            <div class="sensor-bar-fill" style="width: 80%;"></div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 4 -->
+        <div class="sensor-card status-ok">
+          <div class="sensor-icon">🌊</div>
+          <h3>Caudal de Entrada</h3>
+          <p class="sensor-value">142 L/min</p>
+          <p class="sensor-label">Naciente Sur — Actualizado hace 1 min</p>
+          <div class="sensor-bar">
+            <div class="sensor-bar-fill" style="width: 65%;"></div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 5 -->
+        <div class="sensor-card status-ok">
+          <div class="sensor-icon">🌡️</div>
+          <h3>Temperatura del Agua</h3>
+          <p class="sensor-value">22.4 °C</p>
+          <p class="sensor-label">Tanque principal — Normal</p>
+          <div class="sensor-bar">
+            <div class="sensor-bar-fill" style="width: 45%;"></div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 6 -->
+        <div class="sensor-card status-ok">
+          <div class="sensor-icon">🔧</div>
+          <h3>Válvula de Emergencia</h3>
+          <p class="sensor-value">Abierta</p>
+          <p class="sensor-label">Sector C — Operando normalmente ✅</p>
+          <div class="sensor-bar">
+            <div class="sensor-bar-fill" style="width: 100%;"></div>
+          </div>
+        </div>
+
+      </section>
+      <!-- Fin Ejercicio 2 -->
+
+    </main>
+    <!-- Fin área principal -->
+
+    <!-- Panel de alertas derecho -->
+    <aside class="alert-panel">
+      <h3>🔔 Alertas Activas</h3>
+      <div class="alert alert-warning">⚠️ Presión baja — Sector B</div>
+      <div class="alert alert-ok">✅ Cloro en rango normal</div>
+      <div class="alert alert-ok">✅ Tanque A al 73%</div>
+      <div class="alert alert-warning">⚠️ Caudal reducido — Naciente Norte</div>
+      <div class="alert alert-ok">✅ Válvula C operativa</div>
+
+      <h3 class="mt-16">📋 Últimos Eventos</h3>
+      <ul class="event-list">
+        <li>08:42 — Sensor presión recalibrado</li>
+        <li>07:15 — Backup automático OK</li>
+        <li>06:00 — Lectura nocturna completada</li>
+      </ul>
+    </aside>
+
+  </div>
+  <!-- Fin Ejercicio 3 -->
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <span>© 2025 AcueductosIoT · ISW-521 · UTN</span>
+    <span>Lab 3 — Maquetación con Flexbox</span>
+  </footer>
+
+  <!-- =====================================================
+       FONDO MARINO + PECES ANIMADOS (canvas fijo detrás de todo)
+  ====================================================== -->
+  <canvas id="ocean-canvas" aria-hidden="true"></canvas>
+
+  <script>
+    const canvas = document.getElementById('ocean-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // --- Peces ---
+    const FISH_COUNT = 10;
+    const fishes = [];
+
+    function makeFish() {
+      const goingRight = Math.random() > 0.5;
+      const size = 18 + Math.random() * 28;
+      return {
+        x: goingRight ? -80 : canvas.width + 80,
+        y: canvas.height * 0.35 + Math.random() * canvas.height * 0.55,
+        size,
+        speed: (1.2 + Math.random() * 1.6) * (goingRight ? 1 : -1),
+        goingRight,
+        // color del cuerpo: azules y verdes marinos
+        color: ['#0096c7','#00b4d8','#48cae4','#0077b6','#023e8a','#2dc653'][Math.floor(Math.random()*6)],
+        wobble: Math.random() * Math.PI * 2,   // fase inicial de ondulación
+        wobbleSpeed: 0.04 + Math.random() * 0.03,
+        depth: 0.5 + Math.random() * 0.5,      // 0.5–1 para opacidad
+      };
+    }
+
+    for (let i = 0; i < FISH_COUNT; i++) {
+      const f = makeFish();
+      // Distribuir inicialmente por toda la pantalla
+      f.x = Math.random() * canvas.width;
+      fishes.push(f);
+    }
+
+    function drawFish(f) {
+      ctx.save();
+      ctx.globalAlpha = f.depth * 0.82;
+      ctx.translate(f.x, f.y + Math.sin(f.wobble) * 4);
+
+      // Voltear si va a la izquierda
+      if (!f.goingRight) ctx.scale(-1, 1);
+
+      const s = f.size;
+
+      // --- Cuerpo (elipse) ---
+      ctx.beginPath();
+      ctx.ellipse(0, 0, s, s * 0.42, 0, 0, Math.PI * 2);
+      ctx.fillStyle = f.color;
+      ctx.fill();
+
+      // --- Cola (triángulo) ---
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.85, 0);
+      ctx.lineTo(-s * 1.45, -s * 0.45);
+      ctx.lineTo(-s * 1.45,  s * 0.45);
+      ctx.closePath();
+      ctx.fillStyle = f.color;
+      ctx.fill();
+
+      // --- Aleta dorsal ---
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.1, -s * 0.42);
+      ctx.quadraticCurveTo(s * 0.1, -s * 0.8, s * 0.35, -s * 0.42);
+      ctx.fillStyle = f.color;
+      ctx.fill();
+
+      // --- Brillo del cuerpo ---
+      ctx.beginPath();
+      ctx.ellipse(-s * 0.1, -s * 0.1, s * 0.28, s * 0.15, -0.4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      ctx.fill();
+
+      // --- Ojo ---
+      ctx.beginPath();
+      ctx.arc(s * 0.5, -s * 0.07, s * 0.1, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(s * 0.52, -s * 0.07, s * 0.055, 0, Math.PI * 2);
+      ctx.fillStyle = '#0a1628';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // --- Burbujas del mar ---
+    const SEA_BUBBLES = [];
+    for (let i = 0; i < 22; i++) {
+      SEA_BUBBLES.push({
+        x: Math.random() * window.innerWidth,
+        y: window.innerHeight + Math.random() * 200,
+        r: 3 + Math.random() * 7,
+        speed: 0.4 + Math.random() * 0.8,
+        opacity: 0.08 + Math.random() * 0.18,
+      });
+    }
+
+    function updateBubbles() {
+      SEA_BUBBLES.forEach(b => {
+        b.y -= b.speed;
+        b.x += Math.sin(b.y * 0.02) * 0.5;
+        if (b.y < -20) {
+          b.y = canvas.height + 20;
+          b.x = Math.random() * canvas.width;
+        }
+      });
+    }
+
+    function drawBubbles() {
+      SEA_BUBBLES.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(144,224,239,${b.opacity})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+    }
+
+    // --- Olas en el fondo (líneas sinusoidales) ---
+    let waveOffset = 0;
+    function drawWaves() {
+      for (let w = 0; w < 3; w++) {
+        const yBase = canvas.height * (0.70 + w * 0.10);
+        const amp   = 6 + w * 3;
+        const freq  = 0.012 - w * 0.002;
+        const alpha = 0.06 - w * 0.015;
+        ctx.beginPath();
+        for (let x = 0; x <= canvas.width; x += 4) {
+          const y = yBase + Math.sin((x * freq) + waveOffset + w * 1.2) * amp;
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = `rgba(0,180,216,${alpha})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      waveOffset += 0.012;
+    }
+
+    // --- Loop principal ---
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Fondo degradado marino
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0,   'rgba(2,  62,138, 0.18)');
+      grad.addColorStop(0.5, 'rgba(0, 119,182, 0.10)');
+      grad.addColorStop(1,   'rgba(0, 180,216, 0.22)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      drawWaves();
+      updateBubbles();
+      drawBubbles();
+
+      // Mover y dibujar peces
+      fishes.forEach((f, i) => {
+        f.x += f.speed;
+        f.wobble += f.wobbleSpeed;
+        // Reiniciar cuando salga de pantalla
+        if (f.goingRight && f.x > canvas.width + 100) {
+          Object.assign(fishes[i], makeFish());
+          fishes[i].x = -80;
+          fishes[i].goingRight = true;
+          fishes[i].speed = Math.abs(fishes[i].speed);
+        } else if (!f.goingRight && f.x < -100) {
+          Object.assign(fishes[i], makeFish());
+          fishes[i].x = canvas.width + 80;
+          fishes[i].goingRight = false;
+          fishes[i].speed = -Math.abs(fishes[i].speed);
+        }
+        drawFish(f);
+      });
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+
+</body>
+</html>
