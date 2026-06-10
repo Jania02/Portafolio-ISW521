@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toyota GR Supra 3D Hyper-Showroom</title>
+  
+  <!-- Carga de fuentes premium desde Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* VARIABLES CSS - DISEÑO OSCURO DE LUJO */
+    :root {
+      --bg-dark: #05070a;
+      --panel-bg: rgba(8, 12, 20, 0.8);
+      --panel-border: rgba(79, 195, 247, 0.2);
+      --accent-blue: #4FC3F7;
+      --accent-blue-glow: rgba(79, 195, 247, 0.4);
+      --text-primary: #F0F4F8;
+      --text-secondary: #90A4AE;
+      
+      --color-red: #d30000;
+      --color-black: #0c0c0e;
+      --color-blue: #0055ff;
+      --color-white: #f3f4f6;
+      --color-orange: #ff5722;
+      --color-silver: #a6a6a6;
+      --color-green: #2e7d32;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text-primary);
+    }
+
+    /* CONTENEDOR DEL CANVAS 3D (Z-INDEX 1) */
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      background-color: #040608;
+    }
+
+    /* INTERFAZ FLOTANTE MULTI-PANEL (Z-INDEX 10) */
+    .overlay-ui {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      display: grid;
+      grid-template-columns: 340px 1fr 350px;
+      padding: 24px;
+      gap: 24px;
+    }
+
+    .ui-panel {
+      pointer-events: auto;
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: fit-content;
+    }
+
+    /* PANEL IZQUIERDO: DETALLES Y DIAGNÓSTICO */
+    .left-panel {
+      grid-column: 1;
+      align-self: start;
+    }
+
+    .brand-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent-blue);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background-color: var(--accent-blue);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-blue);
+    }
+
+    .car-name {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #FFFFFF 20%, var(--accent-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-top: 4px;
+    }
+
+    .diagnostic-panel {
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 4px;
+    }
+
+    .diagnostic-header {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .diagnostic-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #FFFFFF;
+    }
+
+    .diagnostic-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .diagnostic-specs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .diagnostic-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      padding-bottom: 4px;
+    }
+
+    .diagnostic-label {
+      color: var(--text-secondary);
+    }
+
+    .diagnostic-value {
+      font-weight: bold;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* PANEL DERECHO: PERSONALIZACIÓN Y COMANDOS */
+    .right-panel {
+      grid-column: 3;
+      align-self: start;
+    }
+
+    .control-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-secondary);
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    /* Selector de 7 colores */
+    .color-options {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .color-btn {
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      outline: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .color-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      transition: transform 0.2s ease;
+    }
+
+    .color-btn.active::after {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .color-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .color-btn.active {
+      border-color: #FFFFFF;
+      box-shadow: 0 0 10px var(--btn-glow, var(--accent-blue-glow));
+    }
+
+    #btn-red { background-color: var(--color-red); --btn-glow: rgba(211, 0, 0, 0.5); }
+    #btn-black { background-color: var(--color-black); --btn-glow: rgba(255, 255, 255, 0.2); }
+    #btn-blue { background-color: var(--color-blue); --btn-glow: rgba(0, 85, 255, 0.5); }
+    #btn-white { background-color: var(--color-white); --btn-glow: rgba(255, 255, 255, 0.4); }
+    #btn-orange { background-color: var(--color-orange); --btn-glow: rgba(255, 87, 34, 0.5); }
+    #btn-silver { background-color: var(--color-silver); --btn-glow: rgba(166, 166, 166, 0.4); }
+    #btn-green { background-color: var(--color-green); --btn-glow: rgba(46, 125, 50, 0.5); }
+
+    /* Botones de acción */
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 16px;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      color: #FFFFFF;
+      padding: 12px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-action:hover {
+      background: var(--accent-blue);
+      color: var(--bg-dark);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 15px var(--accent-blue-glow);
+    }
+
+    .btn-action.active {
+      background: var(--accent-blue);
+      color: var(--bg-dark);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 20px var(--accent-blue-glow);
+    }
+
+    /* ETIQUETA DE HOVER */
+    #hover-label {
+      position: absolute;
+      z-index: 100;
+      pointer-events: none;
+      background: rgba(5, 8, 14, 0.95);
+      border: 1px solid var(--accent-blue);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #FFFFFF;
+      box-shadow: 0 4px 15px rgba(79, 195, 247, 0.3);
+      display: none;
+      transform: translate(-50%, -100%);
+      margin-top: -15px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    #hover-label::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px 6px 0;
+      border-style: solid;
+      border-color: var(--accent-blue) transparent;
+      display: block;
+      width: 0;
+    }
+
+    /* CONSEJOS INTERACTIVOS */
+    .showroom-tips {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: rgba(6, 8, 12, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 16px;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .tip-unit {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tip-key {
+      color: var(--accent-blue);
+      font-weight: 700;
+    }
+
+    /* RESPONSIVE */
+    .overlay-ui {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      overflow-y: auto;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Lienzo donde se renderiza la escena 3D -->
+  <div id="canvas-container"></div>
+
+  <!-- Etiqueta flotante 3D -->
+  <div id="hover-label">CAPÓ DELANTERO</div>
+
+  <!-- Interfaz de usuario -->
+  <div class="overlay-ui">
+    
+    <!-- Panel Izquierdo: Specs -->
+    <div class="ui-panel left-panel">
+      <div>
+        <span class="brand-title">TOYOTA GAZOO Racing</span>
+        <h1 class="car-name">GR Supra 2024</h1>
+      </div>
+
+      <div id="diagnostic-box" class="diagnostic-panel">
+        <div class="diagnostic-header">
+          <span>DIAGNÓSTICO GR</span>
+          <span id="diagnostic-status" style="color: #4CAF50;">ACTIVO</span>
+        </div>
+        <h3 id="diag-title" class="diagnostic-title">Toyota GR Supra</h3>
+        <p id="diag-desc" class="diagnostic-desc">
+          Coloca el cursor sobre alguna parte del vehículo para analizarla, o utiliza los controles de personalización.
+        </p>
+        
+        <div class="diagnostic-specs" id="diag-specs-list">
+          <div class="diagnostic-row">
+            <span class="diagnostic-label">Motorización</span>
+            <span class="diagnostic-value">3.0L Turbo L6</span>
+          </div>
+          <div class="diagnostic-row">
+            <span class="diagnostic-label">Potencia Máx.</span>
+            <span class="diagnostic-value">382 HP</span>
+          </div>
+          <div class="diagnostic-row">
+            <span class="diagnostic-label">Distribución</span>
+            <span class="diagnostic-value">50:50 Peso</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Espacio intermedio -->
+    <div style="pointer-events: none;"></div>
+
+    <!-- Panel Derecho: Controles -->
+    <div class="ui-panel right-panel">
+      
+      <!-- Pintura -->
+      <div class="control-section">
+        <h3 class="section-title">Color de Carrocería</h3>
+        <div class="color-options">
+          <button id="btn-red" class="color-btn active" title="Rojo Racing"></button>
+          <button id="btn-black" class="color-btn" title="Negro Onyx"></button>
+          <button id="btn-blue" class="color-btn" title="Azul Daytona"></button>
+          <button id="btn-white" class="color-btn" title="Blanco Perla"></button>
+          <button id="btn-orange" class="color-btn" title="Naranja TRD"></button>
+          <button id="btn-silver" class="color-btn" title="Plata Titan"></button>
+          <button id="btn-green" class="color-btn" title="Verde Mamba"></button>
+        </div>
+      </div>
+
+      <!-- Acciones de Showroom -->
+      <div class="control-section" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+        <h3 class="section-title">Acciones del Showroom</h3>
+        <div class="action-grid">
+          <button id="btn-explode" class="btn-action">
+            <span>Desmontar</span>
+          </button>
+          <button id="btn-assemble" class="btn-action active">
+            <span>Ensamblar</span>
+          </button>
+          <button id="btn-lights" class="btn-action">
+            <span>Luces LED</span>
+          </button>
+          <button id="btn-cockpit" class="btn-action">
+            <span>Cockpit</span>
+          </button>
+        </div>
+      </div>
+
+      <button id="btn-reset-cam" class="btn-action" style="width: 100%;">
+        <span>Restablecer Cámara</span>
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- Indicaciones -->
+  <div class="interaction-tips">
+    <div class="tip-unit">
+      <span class="tip-key">Click + Arrastrar</span>
+      <span>Rotar</span>
+    </div>
+    <div class="tip-unit">
+      <span class="tip-key">Scroll Rueda</span>
+      <span>Zoom</span>
+    </div>
+    <div class="tip-unit">
+      <span class="tip-key">Doble Click</span>
+      <span>Enfocar Pieza</span>
+    </div>
+  </div>
+
+  <!-- CARGA DE LIBRERÍAS CDN GLOBALES (ESTABLES) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- LÓGICA DE PROGRAMACIÓN 3D SIN REFERENCIAS CRUZADAS -->
+  <script>
+    // Confirmar que Three.js cargó correctamente
+    console.log("LOG: Three.js cargado exitosamente:", typeof THREE !== 'undefined' ? "SÍ" : "NO");
+
+    // 1. ORDEN ESTRICTO DE INICIALIZACIÓN: RENDERER, SCENE, CAMERA Y LIGHTS
+    const container = document.getElementById('canvas-container');
+    
+    // Crear Escena
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x040508);
+    scene.fog = new THREE.FogExp2(0x040508, 0.08);
+    console.log("LOG: Escena inicializada");
+
+    // Crear Cámara
+    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(-6.2, 2.8, 6.2);
+    console.log("LOG: Cámara inicializada");
+
+    // Crear WebGLRenderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    
+    // IMPORTANTE: El canvas del renderer debe estar en el DOM antes de renderizar
+    container.appendChild(renderer.domElement);
+    console.log("LOG: WebGLRenderer creado y agregado al DOM");
+
+    // Crear Controles de Cámara
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 3;
+    controls.maxDistance = 14;
+    controls.maxPolarAngle = Math.PI / 2 - 0.02; // No pasar por debajo de la grilla
+
+    // 2. CONFIGURACIÓN DE ILUMINACIÓN DE LA ESCENA
+    // A. Luz ambiental (intensidad 0.4)
+    const ambientLight = new THREE.AmbientLight(0x0b111e, 0.4);
+    scene.add(ambientLight);
+
+    // B. Luz direccional principal desde arriba-frente (intensidad 1.5)
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    dirLight.position.set(-5, 6, 5);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
+    dirLight.shadow.bias = -0.001;
+    scene.add(dirLight);
+
+    // C. PointLight azulada desde atrás para efecto showroom
+    const bluePointLight = new THREE.PointLight(0x4FC3F7, 2.0, 12);
+    bluePointLight.position.set(4, 2, -4);
+    scene.add(bluePointLight);
+
+    // D. PointLight blanca desde abajo para rebote en piso
+    const floorBounceLight = new THREE.PointLight(0xffffff, 1.0, 10);
+    floorBounceLight.position.set(0, -1, 0);
+    scene.add(floorBounceLight);
+    console.log("LOG: Iluminación configurada");
+
+    // 3. GENERACIÓN DE TEXTURA PROCEDURAL PARA METALFLAKE
+    const createFlakeNormalTexture = () => {
+      const size = 128;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.createImageData(size, size);
+      
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        const rX = 128 + Math.floor((Math.random() - 0.5) * 45);
+        const rY = 128 + Math.floor((Math.random() - 0.5) * 45);
+        imgData.data[i] = rX;
+        imgData.data[i+1] = rY;
+        imgData.data[i+2] = 255;
+        imgData.data[i+3] = 255;
+      }
+      ctx.putImageData(imgData, 0, 0);
+      
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(80, 80);
+      return texture;
+    };
+
+    const flakeNormalMap = createFlakeNormalTexture();
+
+    // 4. CREACIÓN DE MATERIALES
+    const paintMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xd30000,
+      metalness: 0.9,
+      roughness: 0.1,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.03,
+      normalMap: flakeNormalMap,
+      normalScale: new THREE.Vector2(0.04, 0.04),
+      reflectivity: 1.0
+    });
+
+    const chromeMaterial = new THREE.MeshStandardMaterial({
+      color: 0xe0e0e0,
+      metalness: 1.0,
+      roughness: 0.05
+    });
+
+    const carbonMaterial = new THREE.MeshStandardMaterial({
+      color: 0x16171a,
+      metalness: 0.2,
+      roughness: 0.5
+    });
+
+    const tireMaterial = new THREE.MeshStandardMaterial({
+      color: 0x121212,
+      metalness: 0.05,
+      roughness: 0.85
+    });
+
+    const windowMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0x05080c,
+      transparent: true,
+      opacity: 0.3, // Opacidad 0.3 según requerimiento
+      metalness: 0.95,
+      roughness: 0.01
+    });
+
+    const brakeDiscMaterial = new THREE.MeshStandardMaterial({
+      color: 0x888888,
+      metalness: 0.9,
+      roughness: 0.3
+    });
+
+    const brakeCaliperMaterial = new THREE.MeshStandardMaterial({
+      color: 0xb30000,
+      metalness: 0.5,
+      roughness: 0.15
+    });
+
+    const headlightMaterial = new THREE.MeshStandardMaterial({
+      color: 0xeeeeee,
+      emissive: 0x000000,
+      roughness: 0.1
+    });
+
+    const taillightMaterial = new THREE.MeshStandardMaterial({
+      color: 0x8a0000,
+      emissive: 0x000000,
+      roughness: 0.1
+    });
+    console.log("LOG: Materiales configurados");
+
+    // 5. CONSTRUCCIÓN GEOMÉTRICA DEL TOYOTA GR SUPRA
+    const carGroup = new THREE.Group();
+    scene.add(carGroup);
+
+    const explodableParts = [];
+
+    // Registrar piezas desmontables
+    const registerExplodablePart = (group, explodeVector, name, desc, specs) => {
+      group.userData = {
+        name: name,
+        desc: desc,
+        specs: specs,
+        explodeVector: explodeVector.clone(),
+        defaultPosition: group.position.clone()
+      };
+      explodableParts.push(group);
+      carGroup.add(group);
+    };
+
+    // --- A. CHASIS BASE (Parte fija) ---
+    const chassisGroup = new THREE.Group();
+    
+    // Cuerpo Principal: Caja principal representando el chasis base
+    const lowerChassis = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.35, 1.56), paintMaterial);
+    lowerChassis.position.y = 0.18;
+    lowerChassis.castShadow = true;
+    lowerChassis.receiveShadow = true;
+    chassisGroup.add(lowerChassis);
+
+    // Bumper trasero y difusor
+    const diffuser = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 1.48), carbonMaterial);
+    diffuser.position.set(1.35, 0.08, 0);
+    chassisGroup.add(diffuser);
+
+    // Parabrisas acoplado al chasis
+    const windshield = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.02, 1.34), windowMaterial);
+    windshield.position.set(-0.42, 0.46, 0);
+    windshield.rotation.z = -0.58;
+    chassisGroup.add(windshield);
+
+    const rearGlass = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.02, 1.34), windowMaterial);
+    rearGlass.position.set(1.05, 0.44, 0);
+    rearGlass.rotation.z = 0.45;
+    chassisGroup.add(rearGlass);
+
+    // Asientos y volante interiores del Cockpit
+    const steeringWheel = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.02, 8, 24), carbonMaterial);
+    steeringWheel.position.set(-0.4, 0.28, 0.32);
+    steeringWheel.rotation.y = Math.PI / 2;
+    steeringWheel.rotation.z = -0.2;
+    chassisGroup.add(steeringWheel);
+
+    const buildSeat = (z) => {
+      const seatGroup = new THREE.Group();
+      const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.4), carbonMaterial);
+      const seatBack = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.4), paintMaterial);
+      seatBack.position.set(0.16, 0.25, 0);
+      seatBack.rotation.z = -0.15;
+      seatGroup.add(seatBase, seatBack);
+      seatGroup.position.set(0.1, 0.05, z);
+      return seatGroup;
+    };
+    chassisGroup.add(buildSeat(0.3));
+    chassisGroup.add(buildSeat(-0.3));
+
+    chassisGroup.userData = {
+      name: "Chasis & Habitáculo",
+      desc: "Chasis de acero y aluminio reforzado con habitáculo biplaza deportivo Gazoo Racing.",
+      specs: { "Estructura": "Acero de alta resistencia", "Interior": "Asientos Deportivos", "Distribución": "50:50" }
+    };
+    carGroup.add(chassisGroup);
+
+    // --- B. CAPÓ LARGO INCLINADO (Desmontable) ---
+    const hoodGroup = new THREE.Group();
+    
+    // Capó largo
+    const hoodMain = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.3, 1.58), paintMaterial);
+    hoodMain.position.set(-1.1, 0.25, 0);
+    hoodMain.rotation.z = -0.06; // Ligera inclinación hacia adelante
+    
+    // Faros delanteros: Esferas aplastadas de color blanco
+    const leftHeadlight = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), headlightMaterial);
+    leftHeadlight.scale.set(0.8, 0.6, 1.8); // Aplastada y alargada
+    leftHeadlight.position.set(-1.75, 0.27, 0.6);
+    leftHeadlight.rotation.y = 0.2;
+    
+    const rightHeadlight = leftHeadlight.clone();
+    rightHeadlight.position.z = -0.6;
+    rightHeadlight.rotation.y = -0.2;
+
+    // Entradas de aire del bumper integradas al capó
+    const lGrill = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.18, 0.3), carbonMaterial);
+    lGrill.position.set(-1.78, 0.1, 0.55);
+    const rGrill = lGrill.clone();
+    rGrill.position.z = -0.55;
+
+    hoodGroup.add(hoodMain, leftHeadlight, rightHeadlight, lGrill, rGrill);
+    registerExplodablePart(
+      hoodGroup, 
+      new THREE.Vector3(-1.1, 0.5, 0), 
+      "Capó con Ópticas LED", 
+      "Capó largo característico del Supra que aloja las ópticas de firma LED y conductos de ventilación frontal.",
+      { "Material": "Aluminio Ligero", "Faros": "Proyección LED en L", "Vents": "Activas" }
+    );
+
+    // --- C. TECHO FASTBACK INCLINADO (Desmontable) ---
+    const roofGroup = new THREE.Group();
+    // Cabina inclinada hacia atrás
+    const roofMain = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 1.32), paintMaterial);
+    roofMain.position.set(0.1, 0.54, 0);
+    roofMain.rotation.z = 0.12; // Inclinación hacia atrás
+    
+    // Cristales laterales integrados
+    const leftSideGlass = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.3, 0.02), windowMaterial);
+    leftSideGlass.position.set(0.12, 0.54, 0.67);
+    leftSideGlass.rotation.z = 0.12;
+    const rightSideGlass = leftSideGlass.clone();
+    rightSideGlass.position.z = -0.67;
+
+    // Espejos retrovisores aerodinámicos
+    const leftMirror = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.2), carbonMaterial);
+    leftMirror.position.set(-0.45, 0.42, 0.76);
+    const rightMirror = leftMirror.clone();
+    rightMirror.position.z = -0.76;
+
+    roofGroup.add(roofMain, leftSideGlass, rightSideGlass, leftMirror, rightMirror);
+    registerExplodablePart(
+      roofGroup, 
+      new THREE.Vector3(0, 0.9, 0), 
+      "Techo Fastback & Cabina", 
+      "Sección de cabina que define el techo de doble burbuja del Supra, reduciendo la resistencia al viento.",
+      { "Silueta": "Aerodinámica", "Espejos": "Perfil Bajo", "CX": "0.30" }
+    );
+
+    // --- D. SPOILER TRASERO CON SOPORTE (Desmontable) ---
+    const spoilerGroup = new THREE.Group();
+    // Alerón principal
+    const spoilerBlade = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.04, 1.62), carbonMaterial);
+    spoilerBlade.position.set(1.4, 0.46, 0);
+    spoilerBlade.rotation.z = -0.12;
+
+    // Soportes verticales
+    const supportLeft = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.04), carbonMaterial);
+    supportLeft.position.set(1.35, 0.38, 0.5);
+    const supportRight = supportLeft.clone();
+    supportRight.position.z = -0.5;
+
+    // Luces traseras rectangulares rojas
+    const leftTaillight = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.32), taillightMaterial);
+    leftTaillight.position.set(1.45, 0.28, 0.56);
+    const rightTaillight = leftTaillight.clone();
+    rightTaillight.position.z = -0.56;
+
+    spoilerGroup.add(spoilerBlade, supportLeft, supportRight, leftTaillight, rightTaillight);
+    registerExplodablePart(
+      spoilerGroup, 
+      new THREE.Vector3(1.0, 0.5, 0), 
+      "Alerón Trasero Activo", 
+      "Alerón de fibra de carbono montado sobre soportes dobles que añade carga en el eje trasero.",
+      { "Material": "Carbono Texturizado", "Soportes": "Aleación", "Grip": "+250 N" }
+    );
+
+    // --- E. SISTEMA DE ESCAPE TRIPLE (Desmontable) ---
+    const exhaustGroup = new THREE.Group();
+    
+    // Tubería de escapes cromada
+    const buildEscape = (z) => {
+      const cy = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.15, 16), chromeMaterial);
+      cy.rotation.z = Math.PI / 2; // Apunta hacia atrás (+x)
+      cy.position.set(1.42, -0.06, z);
+      return cy;
+    };
+    
+    const escapeLeft = buildEscape(0.24);
+    const escapeCenter = buildEscape(0.0);
+    const escapeRight = buildEscape(-0.24);
+    
+    exhaustGroup.add(escapeLeft, escapeCenter, escapeRight);
+    registerExplodablePart(
+      exhaustGroup, 
+      new THREE.Vector3(1.2, -0.3, 0), 
+      "Escape Triple GR", 
+      "Tubería de alto flujo con triple salida cromada para modular la resonancia acústica del motor Turbo.",
+      { "Resonancia": "Deportiva", "Salidas": "3 x 90mm", "Válvulas": "Activas" }
+    );
+
+    // --- F. 4 RUEDAS DETALLADAS (Desmontables) ---
+    const wheels = [];
+    const wheelDefaultPos = [];
+    const wheelExplodeDirs = [
+      new THREE.Vector3(-0.2, 0, 0.95),  // Delantera Izquierda
+      new THREE.Vector3(-0.2, 0, -0.95), // Delantera Derecha
+      new THREE.Vector3(0.2, 0, 0.95),   // Trasera Izquierda
+      new THREE.Vector3(0.2, 0, -0.95)   // Trasera Derecha
+    ];
+
+    const buildWheelPart = (isLeft) => {
+      const wGroup = new THREE.Group();
+      
+      // Neumático: CylinderGeometry rotado 90°
+      const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.3, 32), tireMaterial);
+      tire.rotation.x = Math.PI / 2;
+      wGroup.add(tire);
+
+      // Llanta: CylinderGeometry rotado 90°
+      const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.31, 32), chromeMaterial);
+      rim.rotation.x = Math.PI / 2;
+      wGroup.add(rim);
+
+      // Disco de freno
+      const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.21, 0.03, 16), brakeDiscMaterial);
+      disc.rotation.x = Math.PI / 2;
+      disc.position.z = isLeft ? -0.05 : 0.05;
+      wGroup.add(disc);
+
+      // Caliper de freno rojo
+      const caliper = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.14, 0.08), brakeCaliperMaterial);
+      caliper.position.set(-0.1, 0.1, isLeft ? -0.05 : 0.05);
+      wGroup.add(caliper);
+
+      // Radios en estrella
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * Math.PI * 2) / 5;
+        const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.24, 0.05), chromeMaterial);
+        spoke.position.x = Math.sin(angle) * 0.13;
+        spoke.position.y = Math.cos(angle) * 0.13;
+        spoke.position.z = isLeft ? 0.12 : -0.12;
+        spoke.rotation.z = -angle;
+        wGroup.add(spoke);
+      }
+
+      return wGroup;
+    };
+
+    const wheelsPos = [
+      { x: -1.05, z: 0.8, left: true, name: "Rueda Delantera Izquierda" },
+      { x: -1.05, z: -0.8, left: false, name: "Rueda Delantera Derecha" },
+      { x: 0.95, z: 0.8, left: true, name: "Rueda Trasera Izquierda" },
+      { x: 0.95, z: -0.8, left: false, name: "Rueda Trasera Derecha" }
+    ];
+
+    wheelsPos.forEach((pos, index) => {
+      const w = buildWheelPart(pos.left);
+      w.position.set(pos.x, 0.0, pos.z);
+      
+      registerExplodablePart(
+        w,
+        wheelExplodeDirs[index],
+        pos.name,
+        "Rueda Gazoo Racing forjada de perfil ultra bajo con pinzas de freno Brembo rojas visibles.",
+        { "Llanta": "19 Pulgadas", "Neumático": "Michelin Sport 4S", "Pinza": "4 Pistones" }
+      );
+      
+      wheels.push(w);
+      wheelDefaultPos.push(w.position.clone());
+    });
+
+    // Subir el coche para reposar en el suelo
+    carGroup.position.y = 0.38;
+    console.log("LOG: Geometrías del coche cargadas");
+
+    // --- G. REPRODUCCIÓN DE REFLEJOS (AUTO ESPEJO BAJO EL SUELO) ---
+    const mirrorCarGroup = carGroup.clone();
+    mirrorCarGroup.scale.y = -1;
+    mirrorCarGroup.position.y = -0.38;
+    scene.add(mirrorCarGroup);
+
+    mirrorCarGroup.traverse((node) => {
+      if (node.isMesh) {
+        node.material = node.material.clone();
+        node.material.transparent = true;
+        node.material.opacity = 0.22;
+      }
+    });
+
+    // --- H. SUELO CON GRIDA DE ESTUDIO ---
+    const floorGeo = new THREE.PlaneGeometry(60, 60);
+    const floorMat = new THREE.MeshPhysicalMaterial({
+      color: 0x050609,
+      roughness: 0.25,
+      metalness: 0.8,
+      transparent: true,
+      opacity: 0.9
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const gridHelper = new THREE.GridHelper(50, 50, 0x4FC3F7, 0x121620);
+    gridHelper.position.y = 0.005;
+    scene.add(gridHelper);
+
+    // Sombra suave proyectada bajo el chasis
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = 128;
+    shadowCanvas.height = 64;
+    const sCtx = shadowCanvas.getContext('2d');
+    const radG = sCtx.createRadialGradient(64, 32, 0, 64, 32, 58);
+    radG.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
+    radG.addColorStop(0.4, 'rgba(0, 0, 0, 0.5)');
+    radG.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    sCtx.fillStyle = radG;
+    sCtx.fillRect(0, 0, 128, 64);
+    
+    const shadowMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(4.8, 2.4),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shadowCanvas), transparent: true, depthWrite: false })
+    );
+    shadowMesh.rotation.x = -Math.PI / 2;
+    shadowMesh.position.y = 0.01;
+    scene.add(shadowMesh);
+
+    // 6. SISTEMA DE HUMO Y HALOS GLOW LED
+    // Humo de partículas
+    const smokeCount = 70;
+    const smokeGeo = new THREE.BufferGeometry();
+    const smokePos = new Float32Array(smokeCount * 3);
+    const smokeVels = [];
+    const smokeAges = [];
+    
+    const exhaustOutputs = [
+      new THREE.Vector3(1.42, -0.06, 0.24),
+      new THREE.Vector3(1.42, -0.06, 0.0),
+      new THREE.Vector3(1.42, -0.06, -0.24)
+    ];
+
+    for (let i = 0; i < smokeCount; i++) {
+      const out = exhaustOutputs[i % 3];
+      smokePos[i*3] = out.x;
+      smokePos[i*3+1] = out.y;
+      smokePos[i*3+2] = out.z;
+
+      smokeVels.push(new THREE.Vector3(
+        0.01 + Math.random() * 0.015,
+        0.002 + Math.random() * 0.005,
+        (Math.random() - 0.5) * 0.005
+      ));
+      smokeAges.push(Math.random() * 50);
+    }
+    
+    smokeGeo.setAttribute('position', new THREE.BufferAttribute(smokePos, 3));
+    const smokeMat = new THREE.PointsMaterial({
+      size: 0.1,
+      color: 0x606570,
+      transparent: true,
+      opacity: 0.08,
+      depthWrite: false
+    });
+    const smokeSystem = new THREE.Points(smokeGeo, smokeMat);
+    carGroup.add(smokeSystem);
+
+    // Halos Glow LED delanteros
+    const buildGlowSprite = () => {
+      const c = document.createElement('canvas');
+      c.width = 64; c.height = 64;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 30);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.3, 'rgba(79,195,247,0.7)');
+      g.addColorStop(1, 'rgba(79,195,247,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,64,64);
+      
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(c),
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      }));
+      sprite.scale.set(0.5, 0.5, 1);
+      return sprite;
+    };
+
+    const leftGlow = buildGlowSprite();
+    leftGlow.position.set(-1.8, 0.27, 0.6);
+    leftGlow.visible = false;
+    carGroup.add(leftGlow);
+
+    const rightGlow = leftGlow.clone();
+    rightGlow.position.z = -0.6;
+    rightGlow.visible = false;
+    carGroup.add(rightGlow);
+
+    // Proyecciones de luz LED físicas
+    const headlightL = new THREE.SpotLight(0xffffff, 0, 15, Math.PI / 5, 0.5, 1);
+    headlightL.position.set(-1.8, 0.27, 0.6);
+    const targetL = new THREE.Object3D(); targetL.position.set(-8, 0, 0.6);
+    scene.add(targetL); headlightL.target = targetL;
+    carGroup.add(headlightL);
+
+    const headlightR = new THREE.SpotLight(0xffffff, 0, 15, Math.PI / 5, 0.5, 1);
+    headlightR.position.set(-1.8, 0.27, -0.6);
+    const targetR = new THREE.Object3D(); targetR.position.set(-8, 0, -0.6);
+    scene.add(targetR); headlightR.target = targetR;
+    carGroup.add(headlightR);
+
+    // 7. RAYCASTING HOVER DE PIEZAS
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let hoveredPart = null;
+    let selectedPart = null;
+
+    const hoverLabel = document.getElementById('hover-label');
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      
+      hoverLabel.style.left = e.clientX + 'px';
+      hoverLabel.style.top = e.clientY - 12 + 'px';
+    });
+
+    const runRaycast = () => {
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(carGroup.children, true);
+      
+      if (intersects.length > 0) {
+        let obj = intersects[0].object;
+        let part = null;
+        
+        while (obj.parent && obj !== carGroup) {
+          if (explodableParts.includes(obj) || obj === chassisGroup) {
+            part = obj;
+            break;
+          }
+          obj = obj.parent;
+        }
+
+        if (part) {
+          if (hoveredPart !== part) {
+            clearHover();
+            hoveredPart = part;
+            
+            // Glow azul aditivo al material
+            hoveredPart.traverse((node) => {
+              if (node.isMesh && node.material && node.material !== windowMaterial) {
+                if (!node.userData.origEmissive) {
+                  node.userData.origEmissive = node.material.emissive ? node.material.emissive.getHex() : 0x000000;
+                }
+                if (node.material.emissive) {
+                  node.material.emissive.setHex(0x0a2040);
+                }
+              }
+            });
+
+            hoverLabel.innerText = hoveredPart.userData.name.toUpperCase();
+            hoverLabel.style.display = "block";
+            updateDiagnosticPanel(hoveredPart);
+          }
+          return;
+        }
+      }
+      
+      if (hoveredPart) {
+        clearHover();
+        updateDiagnosticPanel(selectedPart);
+      }
+    };
+
+    const clearHover = () => {
+      if (hoveredPart) {
+        hoveredPart.traverse((node) => {
+          if (node.isMesh && node.material && node.userData.origEmissive !== undefined) {
+            if (node.material.emissive) {
+              node.material.emissive.setHex(node.userData.origEmissive);
+            }
+          }
+        });
+        hoveredPart = null;
+        hoverLabel.style.display = "none";
+      }
+    };
+
+    const updateDiagnosticPanel = (part) => {
+      const title = document.getElementById('diag-title');
+      const desc = document.getElementById('diag-desc');
+      const list = document.getElementById('diag-specs-list');
+      const statusText = document.getElementById('diagnostic-status');
+      
+      if (part) {
+        statusText.innerText = "PARTE BAJO ANÁLISIS";
+        statusText.style.color = "var(--accent-blue)";
+        title.innerText = part.userData.name;
+        desc.innerText = part.userData.desc;
+        
+        list.innerHTML = "";
+        const specs = part.userData.specs;
+        for (const [key, value] of Object.entries(specs)) {
+          list.innerHTML += `
+            <div class="diagnostic-row">
+              <span class="diagnostic-label">${key}</span>
+              <span class="diagnostic-value">${value}</span>
+            </div>
+          `;
+        }
+      } else {
+        statusText.innerText = "SISTEMA ACTIVO";
+        statusText.style.color = "#4CAF50";
+        title.innerText = "Toyota GR Supra 2024";
+        desc.innerText = "Coloca el cursor sobre alguna parte del vehículo para analizarla, o utiliza los controles de personalización.";
+        list.innerHTML = `
+          <div class="diagnostic-row">
+            <span class="diagnostic-label">Motorización</span>
+            <span class="diagnostic-value">3.0L Turbo L6</span>
+          </div>
+          <div class="diagnostic-row">
+            <span class="diagnostic-label">Potencia Máx.</span>
+            <span class="diagnostic-value">382 HP</span>
+          </div>
+          <div class="diagnostic-row">
+            <span class="diagnostic-label">Distribución</span>
+            <span class="diagnostic-value">50:50 Peso</span>
+          </div>
+        `;
+      }
+    };
+
+    // 8. ANIMACIÓN DEL DESPIECE (EXPLODED VIEW)
+    let targetExplode = 0.0;
+    let currentExplode = 1.6; // Inicialmente explota para caída dramática de entrada
+
+    const updateExplosion = () => {
+      currentExplode = THREE.MathUtils.lerp(currentExplode, targetExplode, 0.07);
+      
+      explodableParts.forEach((part) => {
+        const defPos = part.userData.defaultPosition;
+        const dir = part.userData.explodeVector;
+        part.position.copy(defPos).addScaledVector(dir, currentExplode);
+      });
+    };
+
+    document.getElementById('btn-explode').addEventListener('click', () => {
+      targetExplode = 1.0;
+      document.getElementById('btn-explode').classList.add('active');
+      document.getElementById('btn-assemble').classList.remove('active');
+    });
+
+    document.getElementById('btn-assemble').addEventListener('click', () => {
+      targetExplode = 0.0;
+      document.getElementById('btn-assemble').classList.add('active');
+      document.getElementById('btn-explode').classList.remove('active');
+    });
+
+    // 9. EVENTOS DE COLOR DE LA CARROCERÍA
+    const colors = {
+      red: 0xd30000,
+      black: 0x0a0a0c,
+      blue: 0x004ad2,
+      white: 0xeeeff0,
+      orange: 0xff4f00,
+      silver: 0x909497,
+      green: 0x1e6f3d
+    };
+
+    const updatePaint = (hex, activeBtn) => {
+      paintMaterial.color.setHex(hex);
+      
+      // Sincronizar auto espejo
+      mirrorCarGroup.traverse((node) => {
+        if (node.isMesh && node.material && node.material.type === 'MeshPhysicalMaterial' && node !== leftSideGlass && node !== rightSideGlass) {
+          if (node.material.color.getHex() !== windowMaterial.color.getHex()) {
+            node.material.color.setHex(hex);
+          }
+        }
+      });
+
+      document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+      activeBtn.classList.add('active');
+      resetInactivity();
+    };
+
+    document.getElementById('btn-red').addEventListener('click', (e) => updatePaint(colors.red, e.target));
+    document.getElementById('btn-black').addEventListener('click', (e) => updatePaint(colors.black, e.target));
+    document.getElementById('btn-blue').addEventListener('click', (e) => updatePaint(colors.blue, e.target));
+    document.getElementById('btn-white').addEventListener('click', (e) => updatePaint(colors.white, e.target));
+    document.getElementById('btn-orange').addEventListener('click', (e) => updatePaint(colors.orange, e.target));
+    document.getElementById('btn-silver').addEventListener('click', (e) => updatePaint(colors.silver, e.target));
+    document.getElementById('btn-green').addEventListener('click', (e) => updatePaint(colors.green, e.target));
+
+    // 10. CONTROL DE LUCES
+    let ledOn = false;
+    document.getElementById('btn-lights').addEventListener('click', () => {
+      ledOn = !ledOn;
+      const btn = document.getElementById('btn-lights');
+      
+      if (ledOn) {
+        btn.classList.add('active');
+        headlightMaterial.emissive.setHex(0xffffff);
+        taillightMaterial.emissive.setHex(0xff0000);
+        leftGlow.visible = true;
+        rightGlow.visible = true;
+        headlightL.intensity = 5;
+        headlightR.intensity = 5;
+      } else {
+        btn.classList.remove('active');
+        headlightMaterial.emissive.setHex(0x000000);
+        taillightMaterial.emissive.setHex(0x000000);
+        leftGlow.visible = false;
+        rightGlow.visible = false;
+        headlightL.intensity = 0;
+        headlightR.intensity = 0;
+      }
+      resetInactivity();
+    });
+
+    // 11. CÁMARA: DOBLE CLICK FOCUS & COCKPIT VIEW
+    let camTargetPos = new THREE.Vector3(-6.2, 2.8, 6.2);
+    let camTargetLook = new THREE.Vector3(0, 0.4, 0);
+    let cockpitMode = false;
+
+    const lerpCamera = () => {
+      camera.position.lerp(camTargetPos, 0.08);
+      controls.target.lerp(camTargetLook, 0.08);
+    };
+
+    window.addEventListener('dblclick', () => {
+      if (hoveredPart) {
+        selectedPart = hoveredPart;
+        const wPos = new THREE.Vector3();
+        hoveredPart.getWorldPosition(wPos);
+        
+        camTargetLook.copy(wPos);
+        
+        if (hoveredPart === hoodGroup) {
+          camTargetPos.set(wPos.x - 2.0, wPos.y + 0.8, wPos.z + 1.2);
+        } else if (hoveredPart === roofGroup) {
+          camTargetPos.set(wPos.x, wPos.y + 1.0, wPos.z + 1.8);
+        } else if (hoveredPart === spoilerGroup) {
+          camTargetPos.set(wPos.x + 1.8, wPos.y + 0.8, wPos.z + 1.0);
+        } else if (hoveredPart === exhaustGroup) {
+          camTargetPos.set(wPos.x + 1.8, wPos.y + 0.3, wPos.z + 1.1);
+        } else {
+          camTargetPos.set(wPos.x - 0.8, wPos.y + 0.3, wPos.z + 1.2);
+        }
+        
+        if (cockpitMode) {
+          cockpitMode = false;
+          document.getElementById('btn-cockpit').classList.remove('active');
+          windowMaterial.opacity = 0.3;
+        }
+      } else {
+        resetCam();
+      }
+    });
+
+    const resetCam = () => {
+      selectedPart = null;
+      cockpitMode = false;
+      document.getElementById('btn-cockpit').classList.remove('active');
+      windowMaterial.opacity = 0.3;
+      camTargetLook.set(0, 0.4, 0);
+      camTargetPos.set(-6.2, 2.8, 6.2);
+      updateDiagnosticPanel(null);
+    };
+
+    document.getElementById('btn-reset-cam').addEventListener('click', resetCam);
+
+    document.getElementById('btn-cockpit').addEventListener('click', () => {
+      cockpitMode = !cockpitMode;
+      const btn = document.getElementById('btn-cockpit');
+      
+      if (cockpitMode) {
+        btn.classList.add('active');
+        selectedPart = chassisGroup;
+        
+        // Poner la cámara en el habitáculo del piloto
+        camTargetLook.set(-0.4, 0.48, 0.3);
+        camTargetPos.set(0.08, 0.54, 0.3);
+        
+        // Hacer ventanas muy transparentes para ver hacia afuera
+        windowMaterial.opacity = 0.05;
+        
+        updateDiagnosticPanel(chassisGroup);
+      } else {
+        btn.classList.remove('active');
+        resetCam();
+      }
+      resetInactivity();
+    });
+
+    // 12. ROTACIÓN AUTOMÁTICA AL NO INTERACTUAR
+    let rotating = true;
+    let lastAction = Date.now();
+
+    const resetInactivity = () => {
+      lastAction = Date.now();
+      rotating = false;
+    };
+
+    controls.addEventListener('start', resetInactivity);
+    window.addEventListener('mousedown', resetInactivity);
+    window.addEventListener('touchstart', resetInactivity);
+    window.addEventListener('wheel', resetInactivity);
+
+    // Redimensionar ventana
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // 13. BUCLE DE HUMO DE ESCAPE
+    const updateSmoke = () => {
+      const posArr = smokeGeo.attributes.position.array;
+      smokeMat.opacity = ledOn ? 0.3 : 0.08;
+
+      for (let i = 0; i < smokeCount; i++) {
+        smokeAges[i] += 1;
+        
+        if (smokeAges[i] >= 50) {
+          const out = exhaustOutputs[i % 3];
+          posArr[i*3] = out.x;
+          posArr[i*3+1] = out.y;
+          posArr[i*3+2] = out.z;
+          smokeAges[i] = 0;
+        } else {
+          posArr[i*3] += smokeVels[i].x;
+          posArr[i*3+1] += smokeVels[i].y;
+          posArr[i*3+2] += smokeVels[i].z;
+        }
+      }
+      smokeGeo.attributes.position.needsUpdate = true;
+    };
+
+    // Sincronización del espejo
+    const syncMirror = () => {
+      mirrorCarGroup.rotation.copy(carGroup.rotation);
+      for (let i = 0; i < explodableParts.length; i++) {
+        const oPart = explodableParts[i];
+        const mPart = mirrorCarGroup.children[i + 1]; // +1 por chassisGroup en pos 0
+        if (mPart) {
+          mPart.position.x = oPart.position.x;
+          mPart.position.y = -oPart.position.y;
+          mPart.position.z = oPart.position.z;
+        }
+      }
+    };
+
+    // 14. LOOP ANIMATE() PRINCIPAL (LLAMA RENDERER.RENDER Y REQUESTANIMATIONFRAME)
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      // Actualizar OrbitControls damping
+      controls.update();
+
+      // Lerp del despiece
+      updateExplosion();
+
+      // Chequeo de inactividad a los 4.5 segundos
+      if (!rotating && (Date.now() - lastAction > 4500)) {
+        rotating = true;
+      }
+
+      if (rotating && !cockpitMode) {
+        carGroup.rotation.y += 0.0035;
+      }
+
+      // Sincronizar el espejo
+      syncMirror();
+
+      // Partículas
+      updateSmoke();
+
+      // Interpolaciones de cámara
+      lerpCamera();
+
+      // Raycast hover
+      runRaycast();
+
+      // LLAMADA CRÍTICA DEL RENDERER
+      renderer.render(scene, camera);
+    };
+
+    // Iniciar el render loop
+    animate();
+    console.log("LOG: Loop animate() iniciado");
+  </script>
+</body>
+</html>
