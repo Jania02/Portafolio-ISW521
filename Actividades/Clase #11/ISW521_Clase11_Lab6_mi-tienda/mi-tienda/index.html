@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Tienda — ISW521</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>🛒 Mi Tienda</h1>
+        <p id="bienvenida"></p>
+      </header>
+
+      <main>
+        <section id="formulario">
+          <h2>Agregar producto</h2>
+          <input type="text" id="nombre" placeholder="Nombre del producto" />
+          <input type="number" id="precio" placeholder="Precio (₡)" />
+          <button id="btnAgregar">Agregar</button>
+        </section>
+
+        <section id="lista">
+          <h2>Productos</h2>
+          <ul id="listaProductos"></ul>
+          <p id="total"></p>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
