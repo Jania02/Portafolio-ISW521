@@ -1,0 +1,1 @@
+{"version":3,"file":"Estudiante.d.ts","sourceRoot":"","sources":["../src/Estudiante.ts"],"names":[],"mappings":"AAAA,qBAAa,UAAU;IACnB,MAAM,EAAE,MAAM,CAAC;IACf,MAAM,EAAE,MAAM,CAAC;IACf,eAAe,EAAE,MAAM,CAAC;IACxB,IAAI,EAAE,MAAM,CAAC;IAEb,YACI,MAAM,EAAE,MAAM,EACd,MAAM,EAAE,MAAM,EACd,eAAe,EAAE,MAAM,EACvB,IAAI,EAAE,MAAM,EAMf;IAED,UAAU,IAAI,IAAI,CAErB;CACI"}
